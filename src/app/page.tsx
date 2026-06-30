@@ -1,101 +1,185 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState } from "react";
+import { useApp, Task } from "@/context/AppContext";
+import { Sidebar } from "@/components/Sidebar";
+import { DashboardView } from "@/components/DashboardView";
+import { TaskBoardView } from "@/components/TaskBoardView";
+import { FocusTimer } from "@/components/FocusTimer";
+import { AnalyticsView } from "@/components/AnalyticsView";
+import { VoiceInput } from "@/components/VoiceInput";
+import { SettingsModal } from "@/components/SettingsModal";
+import { RescueModeHUD } from "@/components/RescueModeHUD";
+import { CoachChatView } from "@/components/CoachChatView";
+import {
+  LayoutDashboard,
+  Shuffle,
+  Play,
+  Brain,
+  Mic,
+  MessageSquare,
+  X,
+  Bot,
+  Settings
+} from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const { activeTab, setActiveTab } = useApp();
+  
+  // Overlays state
+  const [showVoice, setShowVoice] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [activeRescueTask, setActiveRescueTask] = useState<Task | null>(null);
+  
+  // Right sidebar (Desktop) and floating overlay (Mobile) states
+  const [showRightSidebar, setShowRightSidebar] = useState(true);
+  const [showMobileChat, setShowMobileChat] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const renderActiveView = () => {
+    switch (activeTab) {
+      case "mission":
+        return (
+          <DashboardView
+            onTriggerVoice={() => setShowVoice(true)}
+            onOpenRescueHUD={(task) => setActiveRescueTask(task)}
+          />
+        );
+      case "strategy":
+        return <TaskBoardView onTriggerVoice={() => setShowVoice(true)} />;
+      case "execution":
+        return <FocusTimer />;
+      case "intelligence":
+        return <AnalyticsView />;
+      default:
+        return (
+          <DashboardView
+            onTriggerVoice={() => setShowVoice(true)}
+            onOpenRescueHUD={(task) => setActiveRescueTask(task)}
+          />
+        );
+    }
+  };
+
+  return (
+    <main className="flex h-screen bg-background text-zinc-350 overflow-hidden font-sans antialiased pb-16 md:pb-0">
+      
+      {/* Sidebar - Desktop Only */}
+      <div className="hidden md:flex">
+        <Sidebar 
+          onOpenSettings={() => setShowSettings(true)} 
+          showRightSidebar={showRightSidebar}
+          onToggleRightSidebar={() => setShowRightSidebar(!showRightSidebar)}
+        />
+      </div>
+
+      {/* Main Workspace Area */}
+      <div className="flex-1 flex flex-col min-w-0 relative h-full overflow-hidden">
+        {/* Mobile Top Header */}
+        <div className="md:hidden h-12 shrink-0 border-b border-white/5 bg-surface-primary/80 backdrop-blur-md px-5 flex justify-between items-center z-30">
+          <span className="font-mono font-bold tracking-widest text-[9px] text-indigo-400">DEADLINE // HERO // OS</span>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-1.5 bg-white/5 border border-white/5 text-zinc-400 active:text-white rounded-lg active:scale-95 transition-all"
+            title="Open Settings"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <Settings className="w-3.5 h-3.5" />
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        {renderActiveView()}
+      </div>
+
+      {/* Right Collapsible AI assistant sidebar - Desktop Only */}
+      <div 
+        className={`hidden md:flex border-l border-white/5 bg-surface-primary transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none shrink-0 h-full relative ${
+          showRightSidebar ? "w-96" : "w-0 overflow-hidden border-l-0"
+        }`}
+      >
+        <div className="w-96 h-full flex flex-col">
+          <CoachChatView onClose={() => setShowRightSidebar(false)} />
+        </div>
+      </div>
+
+      {/* Floating Bottom Dock Navigation - Mobile Only */}
+      <div className="md:hidden fixed bottom-5 left-4 right-4 h-16 bg-surface-primary/85 backdrop-blur-md border border-white/5 flex justify-around items-center px-2 z-40 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.8)]">
+        <button
+          onClick={() => setActiveTab("mission")}
+          className={`flex flex-col items-center gap-1.5 text-[9px] font-medium transition-all ${
+            activeTab === "mission" ? "text-indigo-400 font-semibold" : "text-zinc-550"
+          }`}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <LayoutDashboard className="w-4.5 h-4.5" />
+          <span>Mission</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("strategy")}
+          className={`flex flex-col items-center gap-1.5 text-[9px] font-medium transition-all ${
+            activeTab === "strategy" ? "text-indigo-400 font-semibold" : "text-zinc-550"
+          }`}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <Shuffle className="w-4.5 h-4.5" />
+          <span>Strategy</span>
+        </button>
+
+        {/* Floating Center Voice Orb */}
+        <button
+          onClick={() => setShowVoice(true)}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-650 text-white flex items-center justify-center -translate-y-5 shadow-[0_8px_20px_rgba(88,80,236,0.35)] border-2 border-background glow-indigo active:scale-95 transition-all"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <Mic className="w-4.5 h-4.5" />
+        </button>
+
+        <button
+          onClick={() => setActiveTab("execution")}
+          className={`flex flex-col items-center gap-1.5 text-[9px] font-medium transition-all ${
+            activeTab === "execution" ? "text-indigo-400 font-semibold" : "text-zinc-550"
+          }`}
+        >
+          <Play className="w-4.5 h-4.5" />
+          <span>Focus</span>
+        </button>
+
+        {/* Toggle Mobile Chat overlay */}
+        <button
+          onClick={() => setShowMobileChat(true)}
+          className={`flex flex-col items-center gap-1.5 text-[9px] font-medium transition-all ${
+            showMobileChat ? "text-indigo-400 font-semibold" : "text-zinc-550"
+          }`}
+        >
+          <MessageSquare className="w-4.5 h-4.5" />
+          <span>Coach</span>
+        </button>
+      </div>
+
+      {/* Mobile Drawer (Bottom Sheet) Chat Overlay */}
+      {showMobileChat && (
+        <div className="md:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col justify-end animate-fade-in">
+          {/* Backdrop Closer */}
+          <div className="flex-1" onClick={() => setShowMobileChat(false)} />
+          
+          <div className="w-full bg-surface-primary border-t border-white/5 rounded-t-3xl shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
+            {/* Header Grab Bar */}
+            <div className="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto my-3 shrink-0" />
+            <div className="flex-1 overflow-hidden">
+              <CoachChatView onClose={() => setShowMobileChat(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Voice input dialog */}
+      {showVoice && <VoiceInput onClose={() => setShowVoice(false)} />}
+
+      {/* Settings modal */}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+
+      {/* Deadline Rescue Mode HUD */}
+      {activeRescueTask && (
+        <RescueModeHUD
+          task={activeRescueTask}
+          onClose={() => setActiveRescueTask(null)}
+        />
+      )}
+    </main>
   );
 }
