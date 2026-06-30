@@ -58,19 +58,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-5 border-b border-white/5 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-3 animate-fade-in">
-            <div className="w-7 h-7 rounded-lg bg-indigo-650 flex items-center justify-center font-bold text-xs text-white shadow-[0_0_15px_rgba(88,80,236,0.25)]">
-              DH
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Deadline Hero Logo" 
+              className="w-7 h-7 rounded-lg border border-white/10 shadow-[0_4px_12px_rgba(0,245,196,0.15)] object-cover" 
+            />
             <div>
               <h1 className="font-semibold text-xs leading-none text-white tracking-wide">DEADLINE OS</h1>
-              <span className="text-[8px] text-zinc-500 font-mono tracking-widest block mt-0.5 uppercase">v2.5 core</span>
+              <span className="text-[8px] text-zinc-500 font-mono tracking-widest block mt-0.5 uppercase">v2.0 core</span>
             </div>
           </div>
         )}
         {isCollapsed && (
-          <div className="w-7 h-7 mx-auto rounded-lg bg-indigo-650 flex items-center justify-center font-bold text-xs text-white shadow-[0_0_15px_rgba(88,80,236,0.25)]">
-            DH
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Deadline Hero Logo" 
+            className="w-7 h-7 mx-auto rounded-lg border border-white/10 shadow-[0_4px_12px_rgba(0,245,196,0.15)] object-cover" 
+          />
         )}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
